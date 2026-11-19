@@ -21,9 +21,14 @@ export function accessType(p:any) {
   if (/Chain|Decentralized AI|AI Agents|Payments|Crypto Card|DOR/.test(p.category||'')) return 'Research first';
   return 'Permissionless unverified';
 }
+export function executionChain(p:any) {
+  // Prefer a recorded lower-fee network; never invent chain support.
+  const priority=['Base','Arbitrum','Optimism','Polygon','Solana','Avalanche','BSC','Linea','Scroll','Mantle'];
+  return priority.find(chain=>p.chains?.includes(chain))||p.chains?.[0]||'the documented network';
+}
 export function farmPlan(p:any) {
-  const chain = p.chains?.[0] || 'the documented network';
-  const expensive = p.chains?.length===1 && chain==='Ethereum';
+  const chain = executionChain(p);
+  const expensive = chain==='Ethereum';
   const fees = expensive ? '$5–25' : '$1–5';
   const label = `${p.name} (${p.category||'uncategorized'})`;
   const access = accessType(p);
@@ -81,7 +86,7 @@ export function buildRadar(snapshot:any) {
     const value=Math.max(1,Math.round(p.tvl_usd*multiple*momentum*maturity));
     const spread=group.length>=5?.45:.65;
     const flags=[...(growth===null?['7d growth missing']:[]),...(age===null?['Tracking date missing']:[]),...(group.length<5?['Sparse comparables']:[]),...(productLike(p)?['Related-product review']:[]),...(hasToken(p)?['Token record conflict']:[])];
-    return {...p,category:p.category||'Uncategorized',rank:0,implied_value_usd:value,low:Math.round(value*(1-spread)),high:Math.round(value*(1+spread)),watch:watch.has(p.slug),age_days:age,growth,multiple,momentum,maturity,peer_count:group.length,access:accessType(p),flags,farm_steps:farmPlan(p)};
+    return {...p,category:p.category||'Uncategorized',rank:0,implied_value_usd:value,low:Math.round(value*(1-spread)),high:Math.round(value*(1+spread)),watch:watch.has(p.slug),age_days:age,growth,multiple,momentum,maturity,peer_count:group.length,plan_chain:executionChain(p),access:accessType(p),flags,farm_steps:farmPlan(p)};
   }).sort((a:any,b:any)=>b.implied_value_usd-a.implied_value_usd||a.slug.localeCompare(b.slug));
   rows.forEach((r:any,i:number)=>r.rank=i+1);
   if(rows.length<100||rows.length>4000) throw Error('Board count outside gate');
