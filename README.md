@@ -62,9 +62,12 @@ Screenshots are real Chromium captures of generated output, not mockups.
 ## Verification
 
 ```sh
-node --test tests/model.test.ts
+RADAR_SNAPSHOT=/path/to/kit/input/snapshot.json node --test tests/model.test.ts
+RADAR_SNAPSHOT=/path/to/kit/input/snapshot.json RADAR_OUTPUT=out node --test tests/artifact.test.ts
 # Browser checks need the development-only Playwright package, outside runtime:
 NODE_PATH=/path/to/playwright/node_modules node tests/browser.cjs /absolute/path/to/out
+# Optional axe-core audit (Playwright + axe-core in that development directory):
+NODE_PATH=/path/to/dev/node_modules node tests/audit.cjs /absolute/path/to/out
 # From the kit directory:
 node cli/makefun.mjs check --kit . --repo /absolute/path/to/makefun-token-radar
 ```
